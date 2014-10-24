@@ -25,7 +25,7 @@ int writeFile(){
 	FILE* fp;
 	char buffer[FILENAME_BUFFER_SIZE];
 	sprintf(buffer, "%s.c", fileName);
-	fp = fopen("w+");
+	fp = fopen(buffer, "w+");
 }
 
 
