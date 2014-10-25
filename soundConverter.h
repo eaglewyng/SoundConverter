@@ -9,5 +9,6 @@
 #define SOUNDCONVERTER_H_
 
 #define FILENAME_BUFFER_SIZE 50
+#define INTS_PER_LINE 30
 
 #endif /* SOUNDCONVERTER_H_ */
