@@ -11,4 +11,6 @@
 #define FILENAME_BUFFER_SIZE 50
 #define INTS_PER_LINE 30
 
+int runConversion();
+
 #endif /* SOUNDCONVERTER_H_ */
