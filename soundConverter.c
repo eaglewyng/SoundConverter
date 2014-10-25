@@ -5,18 +5,28 @@
  *      Author: Parker Ridd & Tyler Bellows
  */
 #include <stdio.h>
+#include <stdlib.h>
+#include <sndfile.h>
 #include "soundConverter.h"
+#include <inttypes.h>
 
-char* fileName;
+char* sndFileName;
 char* soundName;
+int* soundData;
+
 
 int main(int argc, char *argv[]){
 	if(argc != 2){
 		printf("Error--wrong number of arguments. Expecting 2, received %d", argc);
 	}
 
-	fileName = argv[0];
+	sndFileName = argv[0];
 	soundName = argv[1];
+	return 0;
+}
+
+int getData(){
+	return 0;
 
 }
 
@@ -24,8 +34,14 @@ int main(int argc, char *argv[]){
 int writeFile(){
 	FILE* fp;
 	char buffer[FILENAME_BUFFER_SIZE];
-	sprintf(buffer, "%s.c", fileName);
+	sprintf(buffer, "%s.c", sndFileName);
 	fp = fopen(buffer, "w+");
+	//before
+	fprintf(fp, "int %s_soundData[] = {",soundName);
+
+
+
+	return 0;
 }
 
 

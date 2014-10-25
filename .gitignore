@@ -93,3 +93,9 @@ $RECYCLE.BIN/
 *.i*86
 *.x86_64
 *.hex
+/Debug/
+Default/makefile
+Default/objects.mk
+Default/soundConverter.d
+Default/sources.mk
+Default/subdir.mk
