@@ -76,7 +76,7 @@ int runConversion(){
 	for(i = 0; i < numRead; i++){
 		//print a line after every few ints
 		if(i != 0 && i % INTS_PER_LINE == 0 ){
-			fprintf(ofp, "\n");
+			fprintf(ofp, "\n\t");
 		}
 		fprintf(ofp, "%d, ", buf[i]);
 	}
@@ -84,9 +84,9 @@ int runConversion(){
 	fprintf(ofp, "};\n");
 
 	//----------------printing number of samples----------------//
-	fprintf(ofp,"int %s_numberOfSamples = %d\n", soundName, numRead);
+	fprintf(ofp,"int %s_numberOfSamples = %d;\n", soundName, numRead);
 	//----------------printing sample rate----------------//
-	fprintf(ofp,"int %s_sampleRate = %d\n", soundName, sampleRate);
+	fprintf(ofp,"int %s_sampleRate = %d;\n", soundName, sampleRate);
 
 
 
