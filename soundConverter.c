@@ -47,7 +47,7 @@ int runConversion(){
 	//create and open the input file]
 	SNDFILE *wavFile;
 	SF_INFO info;
-	int *buf;
+	unsigned short *buf;
 	wavFile = sf_open(sndFileName, SFM_READ, &info);
 	if(wavFile == NULL){
 		printf("There was an error when opening the file %s!\n" , sndFileName);
@@ -56,15 +56,16 @@ int runConversion(){
 	int sampleRate = info.samplerate;
 	int channels = info.channels;
 	int samples = info.frames;
+	int soundfmt = info.format;
 	int num_items = samples * channels;
 
 
 	//print out file stats:
-	printf("SOUND FILE STATS\nSample Rate: %d\nSamples: %d\nChannels: %d\n", sampleRate, samples, channels);
+	printf("SOUND FILE STATS\nFormat: %x\nSample Rate: %d\nSamples: %d\nChannels: %d\n",soundfmt, sampleRate, samples, channels);
 
-	buf = (int*) malloc(num_items * sizeof(int));
+	buf = (unsigned short*) malloc(num_items * sizeof(unsigned short));
 
-	int numRead = sf_read_int(wavFile, buf, num_items);
+	int numRead = sf_read_short(wavFile, buf, num_items);
 
 	sf_close(wavFile);
 
@@ -78,7 +79,7 @@ int runConversion(){
 		if(i != 0 && i % INTS_PER_LINE == 0 ){
 			fprintf(ofp, "\n\t");
 		}
-		fprintf(ofp, "%d, ", buf[i]);
+		fprintf(ofp, "%hu, ", (buf[i] >> 8) & 0x00FF);
 	}
 	//to print after the actual data
 	fprintf(ofp, "};\n");
