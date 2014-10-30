@@ -10,6 +10,9 @@
 #include "soundConverter.h"
 #include <inttypes.h>
 #include <string.h>
+#define FORMAT_HEX 0x20746D66
+#define DATA_HEX 0x61746164
+#define DB_ON 1
 
 char* sndFileName;
 char* soundName;
@@ -18,7 +21,7 @@ int* soundData;
 
 int main(int argc, char *argv[]){
 	if(argc != 3){
-		printf("Error--wrong number of arguments. Expecting 2, received %d\n", argc);
+		printf("Error--wrong number of arguments. Expecting 3, received %d\n", argc);
 		return -1;
 	}
 
@@ -45,47 +48,84 @@ int runConversion(){
 	ofp = fopen(buffer, "w+");
 
 	//create and open the input file]
-	SNDFILE *wavFile;
-	SF_INFO info;
-	unsigned short *buf;
-	wavFile = sf_open(sndFileName, SFM_READ, &info);
+	FILE *wavFile;
+
+	wavFile = fopen(sndFileName, "r");
 	if(wavFile == NULL){
 		printf("There was an error when opening the file %s!\n" , sndFileName);
 		return -1;
 	}
-	int sampleRate = info.samplerate;
-	int channels = info.channels;
-	int samples = info.frames;
-	int soundfmt = info.format;
-	int num_items = samples * channels;
+	unsigned int intBuf;
+	unsigned short shortBuf;
 
+	int numCt = 0;
+	int foundFormat = 0;
+	while(!foundFormat){
+		fread(&intBuf, sizeof(int), 1, wavFile);
+		if(intBuf == FORMAT_HEX){
+			foundFormat = 1;
+			numCt++;
+			printf("Found format tag at int count %d!\n", numCt);
+		}
+	}
 
-	//print out file stats:
-	printf("SOUND FILE STATS\nFormat: %x\nSample Rate: %d\nSamples: %d\nChannels: %d\n",soundfmt, sampleRate, samples, channels);
+	fread(&intBuf, sizeof(int), 1, wavFile);
+	int subchunkSize = intBuf;
+	fread(&shortBuf, sizeof(short), 1, wavFile);
+	unsigned short audioFormat = shortBuf;
+	fread(&shortBuf, sizeof(short), 1, wavFile);
+	unsigned short numChannels = shortBuf;
+	if(numChannels > 1){
+		printf("Unsupported number of channels : %hu!\n", numChannels );
+		return -1;
+	}
+	else if(DB_ON){
+		printf("Number of channels: %hu\n", numChannels);
+	}
 
-	buf = (unsigned short*) malloc(num_items * sizeof(unsigned short));
+	fread(&intBuf, sizeof(int), 1, wavFile);
+	int sampleRate = intBuf;
+	printf("Sample Rate: %d\n", sampleRate);
+	fread(&intBuf, sizeof(int), 1, wavFile);
+	int byteRate = intBuf;
+	fread(&shortBuf, sizeof(short), 1, wavFile);
+	int blockAlign = shortBuf;
+	fread(&shortBuf, sizeof(short), 1, wavFile);
+	int bitsPerSample = shortBuf;
 
-	int numRead = sf_read_short(wavFile, buf, num_items);
+	int foundData = 0;
+	numCt = 0;
+	while(!foundData){
+		fread(&intBuf, sizeof(int), 1, wavFile);
+		if(intBuf == DATA_HEX){
+			foundData = 1;
+			numCt++;
+			printf("Found data tag at int count %d!\n", numCt);
+		}
+	}
 
-	sf_close(wavFile);
+	fread(&intBuf, sizeof(int), 1, wavFile);
+	int subchunk2Size = intBuf;
+	int numSamples = (subchunk2Size * 8) / (numChannels * bitsPerSample);
+	printf("Number of samples: %d\n", numSamples);
 
-
-	//----------------print array data----------------//
+	unsigned char charBuf;
 	fprintf(ofp, "int %s_soundData[] = {",soundName);
 	//print array data
 	int i;
-	for(i = 0; i < numRead; i++){
+	for(i = 0; i < numSamples; i++){
 		//print a line after every few ints
 		if(i != 0 && i % INTS_PER_LINE == 0 ){
 			fprintf(ofp, "\n\t");
 		}
-		fprintf(ofp, "%hu, ", (buf[i] >> 8) & 0x00FF);
+		fread(&charBuf, sizeof(char), 1, wavFile);
+		fprintf(ofp, "%hu, ", charBuf);
 	}
 	//to print after the actual data
 	fprintf(ofp, "};\n");
 
 	//----------------printing number of samples----------------//
-	fprintf(ofp,"int %s_numberOfSamples = %d;\n", soundName, numRead);
+	fprintf(ofp,"int %s_numberOfSamples = %d;\n", soundName, numSamples);
 	//----------------printing sample rate----------------//
 	fprintf(ofp,"int %s_sampleRate = %d;\n", soundName, sampleRate);
 
@@ -93,8 +133,7 @@ int runConversion(){
 
 	fclose(ofp);
 	//release everything that has been malloc'd
-	free(buf);
-
+	free(wavFile);
 
 
 	return 0;
