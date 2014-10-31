@@ -10,9 +10,6 @@
 #include "soundConverter.h"
 #include <inttypes.h>
 #include <string.h>
-#define FORMAT_HEX 0x20746D66
-#define DATA_HEX 0x61746164
-#define DB_ON 1
 
 char* sndFileName;
 char* soundName;
