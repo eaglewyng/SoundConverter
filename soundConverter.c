@@ -95,6 +95,7 @@ int runConversion(){
 
 	int foundData = 0;
 	numCt = 0;
+
 	while(!foundData){
 		fread(&intBuf, sizeof(int), 1, wavFile);
 		if(intBuf == DATA_HEX){
@@ -104,25 +105,43 @@ int runConversion(){
 		}
 	}
 
+	printf("Number of bits per sample %d\n", bitsPerSample);
 	fread(&intBuf, sizeof(int), 1, wavFile);
 	int subchunk2Size = intBuf;
 	int numSamples = (subchunk2Size * 8) / (numChannels * bitsPerSample);
 	printf("Number of samples: %d\n", numSamples);
-
-	unsigned char charBuf;
-	fprintf(ofp, "int %s_soundData[] = {",soundName);
-	//print array data
-	int i;
-	for(i = 0; i < numSamples; i++){
-		//print a line after every few ints
-		if(i != 0 && i % INTS_PER_LINE == 0 ){
-			fprintf(ofp, "\n\t");
+	if(bitsPerSample == 8){
+		unsigned char charBuf;
+		fprintf(ofp, "int %s_soundData[] = {",soundName);
+		//print array data
+		int i;
+		for(i = 0; i < numSamples; i++){
+			//print a line after every few ints
+			if(i != 0 && i % INTS_PER_LINE == 0 ){
+				fprintf(ofp, "\n\t");
+			}
+			fread(&charBuf, sizeof(char), 1, wavFile);
+			fprintf(ofp, "%hu, ", charBuf);
 		}
-		fread(&charBuf, sizeof(char), 1, wavFile);
-		fprintf(ofp, "%hu, ", charBuf);
+		//to print after the actual data
+		fprintf(ofp, "};\n");
 	}
-	//to print after the actual data
-	fprintf(ofp, "};\n");
+	else if(bitsPerSample == 16){
+		unsigned short shortBuf;
+		fprintf(ofp, "int %s_soundData[] = {",soundName);
+		//print array data
+		int i;
+		for(i = 0; i < numSamples; i++){
+			//print a line after every few ints
+			if(i != 0 && i % INTS_PER_LINE == 0 ){
+				fprintf(ofp, "\n\t");
+			}
+			fread(&shortBuf, sizeof(short), 1, wavFile);
+			fprintf(ofp, "%hu, ", shortBuf);
+		}
+		//to print after the actual data
+		fprintf(ofp, "};\n");
+	}
 
 	//----------------printing number of samples----------------//
 	fprintf(ofp,"int %s_numberOfSamples = %d;\n", soundName, numSamples);
